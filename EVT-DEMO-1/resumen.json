@@ -1,0 +1,18 @@
+{
+  "evento": {
+    "id": 1,
+    "codigo_evento": "EVT-DEMO-1",
+    "nombre": "Evento Demo"
+  },
+  "tipo": "final",
+  "generado_en": "2025-08-11T17:52:03.487327Z",
+  "incluidos": [
+    {
+      "estudiante_id": 1,
+      "certificado": "TYGTA",
+      "archivo": "EVT-DEMO-1/UTEQ-SCI-EVT-DEMO-1-TYGTA.pdf"
+    }
+  ],
+  "omitidos": [],
+  "total_solicitados": 1
+}

@@ -1,0 +1,180 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .module {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        .module h2 {
+            color: #417690;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 15px 0;
+            padding: 8px 10px;
+            background: #f8f8f8;
+            border-left: 4px solid #417690;
+        }
+        .form-row {
+            margin-bottom: 15px;
+        }
+        .form-row label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .form-row input, .form-row textarea, .form-row select {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .help-text {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+        .submit-row {
+            padding: 15px 0;
+            border-top: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        .submit-row input {
+            background: #417690;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .submit-row input:hover {
+            background: #205067;
+        }
+        .cancel-link {
+            color: #666;
+            text-decoration: none;
+            padding: 10px 20px;
+        }
+        .info-panel {
+            background: #e7f2fa;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .warning-panel {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <h1>{{ title }}</h1>
+        
+        <div class="info-panel">
+            <h3>📊 Estado Actual del Plan</h3>
+            <ul>
+                <li><strong>Estudiante:</strong> {{ matricula.estudiante }}</li>
+                <li><strong>Evento:</strong> {{ matricula.evento }}</li>
+                <li><strong>Número de cuotas actual:</strong> {{ plan.numero_cuotas }}</li>
+                <li><strong>Monto colegiatura actual:</strong> ${{ plan.monto_colegiatura }}</li>
+                <li><strong>Cuotas pagadas:</strong> {{ cuotas_pagadas }}</li>
+                <li><strong>Cuotas pendientes:</strong> {{ cuotas_pendientes }}</li>
+            </ul>
+        </div>
+
+        {% if cuotas_pagadas > 0 %}
+        <div class="warning-panel">
+            <h3>⚠️ Importante</h3>
+            <p>Este plan ya tiene <strong>{{ cuotas_pagadas }} cuotas pagadas</strong>. 
+            La reestructuración mantendrá las cuotas pagadas intactas y regenerará 
+            únicamente las cuotas pendientes con los nuevos parámetros.</p>
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="module">
+                <h2>🔧 Nuevos Parámetros del Plan</h2>
+                
+                <div class="form-row">
+                    <label for="{{ form.nuevo_numero_cuotas.id_for_label }}">
+                        {{ form.nuevo_numero_cuotas.label }}
+                    </label>
+                    {{ form.nuevo_numero_cuotas }}
+                    {% if form.nuevo_numero_cuotas.help_text %}
+                        <div class="help-text">{{ form.nuevo_numero_cuotas.help_text }}</div>
+                    {% endif %}
+                    {% if form.nuevo_numero_cuotas.errors %}
+                        <div class="errors">{{ form.nuevo_numero_cuotas.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <label for="{{ form.nuevo_monto_colegiatura.id_for_label }}">
+                        {{ form.nuevo_monto_colegiatura.label }}
+                    </label>
+                    {{ form.nuevo_monto_colegiatura }}
+                    {% if form.nuevo_monto_colegiatura.help_text %}
+                        <div class="help-text">{{ form.nuevo_monto_colegiatura.help_text }}</div>
+                    {% endif %}
+                    {% if form.nuevo_monto_colegiatura.errors %}
+                        <div class="errors">{{ form.nuevo_monto_colegiatura.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <label for="{{ form.motivo_reestructuracion.id_for_label }}">
+                        {{ form.motivo_reestructuracion.label }}
+                    </label>
+                    {{ form.motivo_reestructuracion }}
+                    {% if form.motivo_reestructuracion.help_text %}
+                        <div class="help-text">{{ form.motivo_reestructuracion.help_text }}</div>
+                    {% endif %}
+                    {% if form.motivo_reestructuracion.errors %}
+                        <div class="errors">{{ form.motivo_reestructuracion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <label for="{{ form.constancia_reestructuracion.id_for_label }}">
+                        {{ form.constancia_reestructuracion.label }}
+                    </label>
+                    {{ form.constancia_reestructuracion }}
+                    {% if form.constancia_reestructuracion.help_text %}
+                        <div class="help-text">{{ form.constancia_reestructuracion.help_text }}</div>
+                    {% endif %}
+                    {% if form.constancia_reestructuracion.errors %}
+                        <div class="errors">{{ form.constancia_reestructuracion.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="submit-row">
+                <input type="submit" value="🔄 Reestructurar Plan" name="submit">
+                <a href="{% url 'admin:modulo_pagos_matricula_changelist' %}" class="cancel-link">
+                    ❌ Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

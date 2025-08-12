@@ -1,0 +1,45 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+*.sqlite3
+backend/db.sqlite3
+backend/logs/
+
+# Envs
+.env
+backend/.env
+backend/config.env
+# macOS artifacts
+__MACOSX/
+.DS_Store
+
+# Django assets
+media/
+staticfiles/
+backend/staticfiles/
+backend/media/
+__MACOSX/
+
+# Coverage / reports
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Docker
+*.pid
+
+# IDE
+.vscode/
+.idea/
+
+# Archivos del sistema
+__MACOSX/
+.DS_Store

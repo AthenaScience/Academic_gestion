@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Tester Certificados</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 20px; }
+    input, select, button { padding: 10px; margin: 6px 0; width: 100%; max-width: 560px; box-sizing: border-box; }
+    label { display: block; margin-top: 10px; font-weight: 600; }
+    .row { max-width: 560px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions > button { flex: 1; min-width: 180px; }
+    iframe { width: 100%; height: 80vh; border: 1px solid #ddd; border-radius: 6px; margin-top: 16px; }
+    small.muted { color: #888; }
+    code { background: rgba(127,127,127,.15); padding: 2px 6px; border-radius: 4px; }
+  </style>
+  <script>
+    function saveLocal(key, value) { try { localStorage.setItem(key, value); } catch(_) {} }
+    function getLocal(key, def='') { try { return localStorage.getItem(key) || def; } catch(_) { return def; } }
+  </script>
+</head>
+<body>
+  <h2>Tester de Certificados (PDF inline)</h2>
+  <p class="row"><small class="muted">Backend: <code>http://localhost:8000</code>. CORS ya permite <code>http://localhost:3000</code> por si prefieres servirlo fuera.</small></p>
+
+  <div class="row">
+    <label>Base URL</label>
+    <input id="baseUrl" value="http://localhost:8000" />
+
+    <label>JWT Bearer Token</label>
+    <input id="token" placeholder="Pega aquí tu token" />
+
+    <label>Estudiante ID</label>
+    <input id="estudianteId" type="number" placeholder="1" />
+
+    <label>Evento ID</label>
+    <input id="eventoId" type="number" placeholder="10" />
+
+    <label>Tipo de certificado</label>
+    <select id="tipo">
+      <option value="final">Final</option>
+      <option value="matricula">Matrícula</option>
+    </select>
+
+    <div class="actions">
+      <button id="btn">Generar y ver PDF</button>
+      <button id="btnNew">Abrir en nueva pestaña</button>
+    </div>
+  </div>
+
+  <iframe id="viewer" title="PDF Viewer"></iframe>
+
+  <script>
+    let lastBlobUrl = null;
+
+    document.getElementById('baseUrl').value = getLocal('tester.baseUrl', 'http://localhost:8000');
+    document.getElementById('token').value = getLocal('tester.token', '');
+    document.getElementById('estudianteId').value = getLocal('tester.estudianteId', '');
+    document.getElementById('eventoId').value = getLocal('tester.eventoId', '');
+    document.getElementById('tipo').value = getLocal('tester.tipo', 'final');
+
+    async function generar() {
+      const baseUrl = document.getElementById('baseUrl').value.replace(/\/$/, '');
+      const token = document.getElementById('token').value.trim();
+      const estudianteId = Number(document.getElementById('estudianteId').value);
+      const eventoId = Number(document.getElementById('eventoId').value);
+      const tipo = document.getElementById('tipo').value;
+
+      saveLocal('tester.baseUrl', baseUrl);
+      saveLocal('tester.token', token);
+      saveLocal('tester.estudianteId', String(estudianteId));
+      saveLocal('tester.eventoId', String(eventoId));
+      saveLocal('tester.tipo', tipo);
+
+      if (!token || !estudianteId || !eventoId) {
+        alert('Token, estudiante_id y evento_id son obligatorios');
+        return;
+      }
+
+      const endpoint = tipo === 'final'
+        ? '/api/v1/certificados/generar_final_pdf/'
+        : '/api/v1/certificados/generar_matricula_pdf/';
+
+      const res = await fetch(baseUrl + endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estudiante_id: estudianteId, evento_id: eventoId })
+      });
+
+      if (!res.ok) {
+        let msg = 'Error ' + res.status;
+        try { msg += ': ' + (await res.text()); } catch(_) {}
+        alert(msg);
+        return;
+      }
+
+      const blob = await res.blob();
+      if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+      lastBlobUrl = URL.createObjectURL(blob);
+      document.getElementById('viewer').src = lastBlobUrl;
+    }
+
+    function abrirNueva() {
+      if (!lastBlobUrl) { alert('Primero genera el PDF'); return; }
+      window.open(lastBlobUrl, '_blank');
+    }
+
+    document.getElementById('btn').addEventListener('click', generar);
+    document.getElementById('btnNew').addEventListener('click', abrirNueva);
+  </script>
+</body>
+</html>
+

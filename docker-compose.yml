@@ -1,0 +1,78 @@
+name: gestion-academica
+
+services:
+  # Backend Django
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gestion_academica_backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+      - ./data:/app/data
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+              python manage.py collectstatic --noinput &&
+              python manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/_healthz/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Base de datos PostgreSQL (opcional, descomentar para usar)
+  # db:
+  #   image: postgres:15
+  #   container_name: gestion_academica_db
+  #   environment:
+  #     - POSTGRES_DB=gestion_academica
+  #     - POSTGRES_USER=gestion_user
+  #     - POSTGRES_PASSWORD=gestion_pass
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U gestion_user -d gestion_academica"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Frontend React (descomentar cuando esté listo)
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: gestion_academica_frontend
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   environment:
+  #     - VITE_API_URL=http://localhost:8000/api/v1/
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
+
+  # Redis para cache (opcional)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: gestion_academica_redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+
+# Comentar esta sección si no usas volúmenes nombrados
+# volumes:
+#   postgres_data:  # Descomentar si usas PostgreSQL
+#   redis_data:     # Descomentar si usas Redis
